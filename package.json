@@ -1,0 +1,45 @@
+{
+  "name": "@lucascampooss/authcore",
+  "version": "0.1.1",
+  "description": "Framework-agnostic authentication library with JWT, refresh tokens, and RBAC",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "auth",
+    "authentication",
+    "jwt",
+    "refresh-token",
+    "rbac",
+    "authorization",
+    "framework-agnostic",
+    "typescript"
+  ],
+  "author": "Lucas Campos",
+  "license": "MIT",
+  "peerDependencies": {
+    "zod": "^3.22.0"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20.10.6",
+    "typescript": "^5.3.3",
+    "zod": "^3.22.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
