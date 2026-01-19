@@ -13,7 +13,10 @@ implement the `RefreshTokenStorage` interface with your database:
 ```typescript
 // sqlite-adapter.ts
 import Database from 'better-sqlite3';
-import { RefreshTokenStorage, StoredRefreshToken } from '@lucascampooss/authcore';
+import {
+  RefreshTokenStorage,
+  StoredRefreshToken,
+} from '@lucascampooss/authcore';
 
 export class SQLiteStorage implements RefreshTokenStorage {
   private db: Database.Database;
@@ -36,15 +39,31 @@ export class SQLiteStorage implements RefreshTokenStorage {
     `);
   }
 
-  async save(userId: string, tokenHash: string, expiresAt: Date): Promise<void> {
-    this.db.prepare(`
+  async save(
+    userId: string,
+    tokenHash: string,
+    expiresAt: Date
+  ): Promise<void> {
+    this.db
+      .prepare(
+        `
       INSERT INTO refresh_tokens (id, user_id, token_hash, expires_at, created_at)
       VALUES (?, ?, ?, ?, ?)
-    `).run(crypto.randomUUID(), userId, tokenHash, expiresAt.toISOString(), new Date().toISOString());
+    `
+      )
+      .run(
+        crypto.randomUUID(),
+        userId,
+        tokenHash,
+        expiresAt.toISOString(),
+        new Date().toISOString()
+      );
   }
 
   async findByUserId(userId: string): Promise<StoredRefreshToken[]> {
-    const rows = this.db.prepare('SELECT * FROM refresh_tokens WHERE user_id = ?').all(userId) as any[];
+    const rows = this.db
+      .prepare('SELECT * FROM refresh_tokens WHERE user_id = ?')
+      .all(userId) as any[];
     return rows.map(row => ({
       id: row.id,
       userId: row.user_id,
@@ -63,7 +82,8 @@ export class SQLiteStorage implements RefreshTokenStorage {
   }
 
   async deleteExpired(): Promise<number> {
-    const result = this.db.prepare('DELETE FROM refresh_tokens WHERE expires_at < ?')
+    const result = this.db
+      .prepare('DELETE FROM refresh_tokens WHERE expires_at < ?')
       .run(new Date().toISOString());
     return result.changes;
   }
@@ -81,11 +101,11 @@ export const auth = createAuth({
   jwt: {
     accessSecret: process.env.JWT_ACCESS_SECRET!,
     refreshSecret: process.env.JWT_REFRESH_SECRET!,
-    accessExpiry: '15m',  // optional, default: '15m'
-    refreshExpiry: '7d',  // optional, default: '7d'
+    accessExpiry: '15m', // optional, default: '15m'
+    refreshExpiry: '7d', // optional, default: '7d'
   },
   password: {
-    saltRounds: 12,  // optional, default: 12
+    saltRounds: 12, // optional, default: 12
   },
   storage: new SQLiteStorage('./database.sqlite'),
 });
@@ -117,28 +137,28 @@ const authorize = (...roles: UserRole[]) =>
 // signup
 app.post('/auth/signup', async (req, res) => {
   const { email, password } = req.body;
-  
+
   // check if user exists (your code)
   // const existingUser = await db.findUserByEmail(email);
   // if (existingUser) return res.status(409).json({ error: 'email exists' });
-  
+
   // hash password
   const passwordHash = await auth.hashPassword(password);
-  
+
   // create user (your code)
   // await db.createUser({ email, passwordHash, role: UserRole.USER });
-  
+
   res.status(201).json({ message: 'user created' });
 });
 
 // login
 app.post('/auth/login', async (req, res) => {
   const { email, password } = req.body;
-  
+
   // find user (your code)
   // const user = await db.findUserByEmail(email);
   // if (!user) return res.status(401).json({ error: 'invalid credentials' });
-  
+
   // example user
   const user = {
     id: '123',
@@ -146,20 +166,20 @@ app.post('/auth/login', async (req, res) => {
     passwordHash: '$2b$12$...',
     role: UserRole.USER,
   };
-  
+
   // verify password
   const isValid = await auth.verifyPassword(password, user.passwordHash);
   if (!isValid) {
     return res.status(401).json({ error: 'invalid credentials' });
   }
-  
+
   // generate tokens
   const tokens = await auth.generateTokens({
     userId: user.id,
     email: user.email,
     role: user.role,
   });
-  
+
   res.json(tokens);
 });
 
@@ -186,9 +206,14 @@ app.get('/me', authenticate, (req, res) => {
 });
 
 // admin only route
-app.get('/admin', authenticate, authorize(UserRole.ADMIN, UserRole.SUPERADMIN), (req, res) => {
-  res.json({ message: 'admin area' });
-});
+app.get(
+  '/admin',
+  authenticate,
+  authorize(UserRole.ADMIN, UserRole.SUPERADMIN),
+  (req, res) => {
+    res.json({ message: 'admin area' });
+  }
+);
 
 app.listen(3000, () => {
   console.log('server running on port 3000');
@@ -202,6 +227,7 @@ app.listen(3000, () => {
 creates auth instance.
 
 **config:**
+
 - `jwt.accessSecret` - secret for access tokens (required)
 - `jwt.refreshSecret` - secret for refresh tokens (required)
 - `jwt.accessExpiry` - access token expiry (default: '15m')
@@ -277,9 +303,10 @@ const authenticate = middleware.authenticate((error, req, res) => {
 });
 
 // authorize
-const authorize = (...roles) => middleware.authorize(roles, (error, req, res) => {
-  res.status(403).json({ error: error.message });
-});
+const authorize = (...roles) =>
+  middleware.authorize(roles, (error, req, res) => {
+    res.status(403).json({ error: error.message });
+  });
 ```
 
 ## environment variables

@@ -1,32 +1,32 @@
-import type { Pool } from 'pg';
 import { randomUUID } from 'crypto';
-import { RefreshTokenStorage, StoredRefreshToken, SessionMetadata } from '../../src/types';
+import type { Connection, Pool } from 'mysql2/promise';
+import { RefreshTokenStorage, SessionMetadata, StoredRefreshToken } from '../../src/types';
 
-export class PostgresStorage implements RefreshTokenStorage {
-  private pool: Pool;
+export class MySQLStorage implements RefreshTokenStorage {
+  private connection: Connection | Pool;
 
-  constructor(connectionString: string) {
-    this.pool = new Pool({ connectionString });
+  constructor(connection: Connection | Pool) {
+    this.connection = connection;
     this.createTable();
   }
 
   private async createTable() {
-    await this.pool.query(`
+    await this.connection.execute(`
       CREATE TABLE IF NOT EXISTS refresh_tokens (
-        id TEXT PRIMARY KEY,
-        user_id TEXT NOT NULL,
+        id VARCHAR(36) PRIMARY KEY,
+        user_id VARCHAR(255) NOT NULL,
         token_hash TEXT NOT NULL,
-        expires_at TIMESTAMP NOT NULL,
-        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-        session_id TEXT,
+        expires_at DATETIME NOT NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        session_id VARCHAR(255),
         user_agent TEXT,
-        ip TEXT,
-        device_id TEXT,
-        last_used_at TIMESTAMP
-      );
-      CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens(user_id);
-      CREATE INDEX IF NOT EXISTS idx_refresh_tokens_session_id ON refresh_tokens(session_id);
-      CREATE INDEX IF NOT EXISTS idx_refresh_tokens_expires_at ON refresh_tokens(expires_at);
+        ip VARCHAR(45),
+        device_id VARCHAR(255),
+        last_used_at DATETIME,
+        INDEX idx_user_id (user_id),
+        INDEX idx_session_id (session_id),
+        INDEX idx_expires_at (expires_at)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
   }
 
@@ -36,10 +36,10 @@ export class PostgresStorage implements RefreshTokenStorage {
     expiresAt: Date,
     metadata?: SessionMetadata
   ): Promise<void> {
-    await this.pool.query(
+    await this.connection.execute(
       `INSERT INTO refresh_tokens (
         id, user_id, token_hash, expires_at, session_id, user_agent, ip, device_id, last_used_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         randomUUID(),
         userId,
@@ -55,11 +55,12 @@ export class PostgresStorage implements RefreshTokenStorage {
   }
 
   async findByUserId(userId: string): Promise<StoredRefreshToken[]> {
-    const result = await this.pool.query('SELECT * FROM refresh_tokens WHERE user_id = $1', [
-      userId,
-    ]);
+    const [rows] = await this.connection.execute(
+      'SELECT * FROM refresh_tokens WHERE user_id = ?',
+      [userId]
+    );
 
-    return result.rows.map(row => ({
+    return (rows as any[]).map(row => ({
       id: row.id,
       userId: row.user_id,
       tokenHash: row.token_hash,
@@ -74,13 +75,15 @@ export class PostgresStorage implements RefreshTokenStorage {
   }
 
   async findBySessionId(sessionId: string): Promise<StoredRefreshToken | null> {
-    const result = await this.pool.query('SELECT * FROM refresh_tokens WHERE session_id = $1', [
-      sessionId,
-    ]);
+    const [rows] = await this.connection.execute(
+      'SELECT * FROM refresh_tokens WHERE session_id = ? LIMIT 1',
+      [sessionId]
+    );
 
-    if (result.rows.length === 0) return null;
+    const rowsArray = rows as any[];
+    if (rowsArray.length === 0) return null;
 
-    const row = result.rows[0];
+    const row = rowsArray[0];
     return {
       id: row.id,
       userId: row.user_id,
@@ -96,27 +99,27 @@ export class PostgresStorage implements RefreshTokenStorage {
   }
 
   async deleteByUserId(userId: string): Promise<void> {
-    await this.pool.query('DELETE FROM refresh_tokens WHERE user_id = $1', [userId]);
+    await this.connection.execute('DELETE FROM refresh_tokens WHERE user_id = ?', [userId]);
   }
 
   async deleteById(id: string): Promise<void> {
-    await this.pool.query('DELETE FROM refresh_tokens WHERE id = $1', [id]);
+    await this.connection.execute('DELETE FROM refresh_tokens WHERE id = ?', [id]);
   }
 
   async deleteBySessionId(sessionId: string): Promise<void> {
-    await this.pool.query('DELETE FROM refresh_tokens WHERE session_id = $1', [sessionId]);
+    await this.connection.execute('DELETE FROM refresh_tokens WHERE session_id = ?', [sessionId]);
   }
 
   async deleteExpired(): Promise<number> {
-    const result = await this.pool.query(
-      'DELETE FROM refresh_tokens WHERE expires_at < NOW() RETURNING id'
+    const [result] = await this.connection.execute(
+      'DELETE FROM refresh_tokens WHERE expires_at < NOW()'
     );
-    return result.rowCount || 0;
+    return (result as any).affectedRows || 0;
   }
 
   async updateExpiry(id: string, expiresAt: Date): Promise<void> {
-    await this.pool.query(
-      'UPDATE refresh_tokens SET expires_at = $1, last_used_at = $2 WHERE id = $3',
+    await this.connection.execute(
+      'UPDATE refresh_tokens SET expires_at = ?, last_used_at = ? WHERE id = ?',
       [expiresAt, new Date(), id]
     );
   }

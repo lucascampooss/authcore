@@ -1,4 +1,5 @@
-import { UserRole, hasRole as checkRoleHierarchy } from './roles';
+import { UserRole } from '../types';
+import { hasRole as checkRoleHierarchy } from './roles';
 
 export type Permission = string;
 

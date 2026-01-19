@@ -1,0 +1,1 @@
+export { createAuthMiddleware } from './factories';

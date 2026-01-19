@@ -1,17 +1,34 @@
 {
   "name": "@lucascampooss/authcore",
-  "version": "0.1.1",
-  "description": "Framework-agnostic authentication library with JWT, refresh tokens, and RBAC",
+  "version": "0.2.0",
+  "description": "Framework-agnostic authentication library with JWT, refresh tokens, RBAC, and advanced session management",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.js"
+    }
+  },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "SECURITY.md"
   ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "prepublishOnly": "npm run build"
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"examples/**/*.ts\" \"*.md\" \"*.json\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"examples/**/*.ts\" \"*.md\" \"*.json\"",
+    "type-check": "tsc --noEmit",
+    "check": "npm run type-check && npm run lint && npm run format:check",
+    "fix": "npm run lint:fix && npm run format",
+    "prepublishOnly": "npm run check && npm run build"
   },
   "keywords": [
     "auth",
@@ -21,10 +38,33 @@
     "rbac",
     "authorization",
     "framework-agnostic",
-    "typescript"
+    "typescript",
+    "security",
+    "session-management",
+    "multi-device",
+    "token-rotation",
+    "bcrypt",
+    "middleware"
   ],
-  "author": "Lucas Campos",
+  "author": {
+    "name": "Lucas Campos",
+    "email": "fastzaaao@gmail.com",
+    "url": "https://github.com/lucascampooss"
+  },
   "license": "MIT",
+  "homepage": "https://github.com/lucascampooss/authcore#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lucascampooss/authcore.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lucascampooss/authcore/issues"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/lucascampooss"
+  },
+  "sideEffects": false,
   "peerDependencies": {
     "zod": "^3.22.0"
   },
@@ -33,9 +73,16 @@
     "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
     "@types/bcrypt": "^5.0.2",
     "@types/jsonwebtoken": "^9.0.5",
     "@types/node": "^20.10.6",
+    "@typescript-eslint/eslint-plugin": "^8.53.0",
+    "@typescript-eslint/parser": "^8.53.0",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "prettier": "^3.8.0",
     "typescript": "^5.3.3",
     "zod": "^3.22.4"
   },

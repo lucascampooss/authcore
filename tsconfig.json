@@ -7,7 +7,7 @@
     "declarationMap": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    
+
     // strict type checking
     "strict": true,
     "noImplicitAny": true,
@@ -18,7 +18,7 @@
     "noImplicitThis": true,
     "alwaysStrict": true,
     "useUnknownInCatchVariables": true,
-    
+
     // additional checks
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -27,7 +27,7 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
-    
+
     // module resolution
     "esModuleInterop": true,
     "skipLibCheck": true,

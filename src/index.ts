@@ -1,6 +1,6 @@
 export { createAuth } from './core/auth';
 export { hashPassword, verifyPassword } from './core/password';
-export { createAuthMiddleware } from './middleware/factories';
+export { createAuthMiddleware } from './middleware';
 
 export type {
   AuthConfig,
@@ -10,10 +10,14 @@ export type {
   RefreshTokenStorage,
   AuthMiddleware,
   AuthRequest,
+  SessionMetadata,
+  SessionInfo,
+  StoredRefreshToken,
+  AuthHooks,
 } from './types';
 
-export { UserRole } from './rbac/roles';
-export { checkPermission, hasRole } from './rbac/permissions';
+export { UserRole, AuthErrorCode, AuthError } from './types';
+export { checkPermission, hasRole } from './rbac';
 
 export { MemoryStorage } from './adapters/memory';
 

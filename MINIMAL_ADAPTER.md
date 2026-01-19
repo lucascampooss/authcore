@@ -1,6 +1,7 @@
 # minimal adapter implementation
 
-this is the **absolute minimum** you need to implement to use @lucascampooss/authcore with any database.
+this is the **absolute minimum** you need to implement to use
+@lucascampooss/authcore with any database.
 
 ## the interface
 
@@ -25,7 +26,10 @@ interface StoredRefreshToken {
 ## minimal example (in-memory)
 
 ```typescript
-import { RefreshTokenStorage, StoredRefreshToken } from '@lucascampooss/authcore';
+import {
+  RefreshTokenStorage,
+  StoredRefreshToken,
+} from '@lucascampooss/authcore';
 
 class MinimalStorage implements RefreshTokenStorage {
   private tokens = new Map<string, StoredRefreshToken>();
@@ -42,8 +46,7 @@ class MinimalStorage implements RefreshTokenStorage {
   }
 
   async findByUserId(userId: string) {
-    return Array.from(this.tokens.values())
-      .filter(t => t.userId === userId);
+    return Array.from(this.tokens.values()).filter(t => t.userId === userId);
   }
 
   async deleteByUserId(userId: string) {
@@ -75,39 +78,48 @@ class MinimalStorage implements RefreshTokenStorage {
 ## what each method does
 
 ### `save(userId, tokenHash, expiresAt)`
+
 - **when**: called when user logs in or refreshes token
 - **what**: store a new refresh token hash
 - **note**: library already hashed the token with bcrypt
 
 ### `findByUserId(userId)`
+
 - **when**: called when refreshing tokens
 - **what**: return all refresh tokens for a user
 - **note**: library will verify which one matches
 
 ### `deleteByUserId(userId)`
+
 - **when**: called when user logs out
 - **what**: delete all refresh tokens for a user
 - **note**: logs out from all devices
 
 ### `deleteById(id)`
+
 - **when**: called during token rotation
 - **what**: delete a specific token by id
 - **note**: old token is deleted when refreshing
 
 ### `deleteExpired()`
+
 - **when**: called by your cleanup job (optional)
 - **what**: delete all expired tokens
 - **note**: returns count of deleted tokens
 
 ## that's it!
 
-implement these 5 methods and you can use @lucascampooss/authcore with **any database**.
+implement these 5 methods and you can use @lucascampooss/authcore with **any
+database**.
 
 ## real-world example (postgres)
 
 ```typescript
 import { Pool } from 'pg';
-import { RefreshTokenStorage, StoredRefreshToken } from '@lucascampooss/authcore';
+import {
+  RefreshTokenStorage,
+  StoredRefreshToken,
+} from '@lucascampooss/authcore';
 
 class PostgresStorage implements RefreshTokenStorage {
   constructor(private pool: Pool) {}
@@ -134,17 +146,13 @@ class PostgresStorage implements RefreshTokenStorage {
   }
 
   async deleteByUserId(userId: string) {
-    await this.pool.query(
-      'DELETE FROM refresh_tokens WHERE user_id = $1',
-      [userId]
-    );
+    await this.pool.query('DELETE FROM refresh_tokens WHERE user_id = $1', [
+      userId,
+    ]);
   }
 
   async deleteById(id: string) {
-    await this.pool.query(
-      'DELETE FROM refresh_tokens WHERE id = $1',
-      [id]
-    );
+    await this.pool.query('DELETE FROM refresh_tokens WHERE id = $1', [id]);
   }
 
   async deleteExpired() {

@@ -1,8 +1,6 @@
-export enum UserRole {
-  USER = 'USER',
-  ADMIN = 'ADMIN',
-  SUPERADMIN = 'SUPERADMIN',
-}
+import { UserRole } from '../types';
+
+export { UserRole };
 
 // hierarchical role system: higher number = more permissions
 const roleHierarchy: Record<UserRole, number> = {

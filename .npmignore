@@ -1,5 +1,15 @@
 src/
 examples/
+.vscode/
+.eslintrc.json
+.prettierrc.js
+.prettierignore
 tsconfig.json
+.tsbuildinfo
+.eslintcache
+.prettiercache
+.gitignore
 *.md
 !README.md
+!CHANGELOG.md
+!SECURITY.md
